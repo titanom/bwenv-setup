@@ -1,7 +1,6 @@
 import * as core from '@actions/core';
 import * as tc from '@actions/tool-cache';
 import * as ht from '@actions/http-client';
-import * as github from '@actions/github';
 import * as fs from 'node:fs';
 import * as fsp from 'node:fs/promises';
 import * as path from 'node:path';
@@ -29,7 +28,7 @@ function getBinaryType(): string {
   core.info(`Platform: ${platform}`);
   core.info(`Arch: ${arch}`);
 
-  let binary = "";
+  let binary = '';
 
   switch (platform) {
     case 'darwin': {
@@ -61,28 +60,16 @@ function getBinaryType(): string {
 }
 
 async function getLatestVersion(): Promise<string> {
-  try {
-    // @ts-expect-error
-    const octokit = github.getOctokit(process.env.GITHUB_TOKEN!);
+  const releaseURL = `https://api.github.com/repos/titanom/bwenv/releases/latest`;
 
-    const { owner, repo } = github.context.repo;
-    const releases = await octokit.rest.repos.listReleases({
-      owner,
-      repo,
-      per_page: 1
-    });
+  const http = new ht.HttpClient('titanom/bwenv-setup');
+  const response = await http.getJson<any>(releaseURL);
 
-    const latestRelease = releases.data[0];
-
-    if (!latestRelease || !latestRelease.tag_name) {
-      throw new Error('Could not fetch the latest release.');
-    }
-
-    return latestRelease.tag_name;
-  } catch (error) {
-    // @ts-expect-error
-    core.error('Failed to fetch the latest release:', error);
-    throw error;
+  if (response.result) {
+    const tag = response.result.tag_name;
+    return tag;
+  } else {
+    throw new Error(`Failed to get the latest release information for titanom/bwenv`);
   }
 }
 
@@ -130,7 +117,7 @@ async function run() {
   try {
     const version = core.getInput('version', { required: false });
 
-    const releaseURL = getReleaseURL(version);
+    const releaseURL = await getReleaseURL(version);
 
     await downloadFile(releaseURL, path.join(__dirname, 'bwenv.zip')).then((archive) =>
       unzipArchive(archive, __dirname, true),
