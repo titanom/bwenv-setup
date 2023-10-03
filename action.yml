@@ -1,0 +1,12 @@
+name: 'Install Binary from GitHub Release'
+description: 'Download and install a binary from a GitHub release'
+inputs:
+  version:
+    description: 'Version of bwenv'
+    default: latest
+outputs:
+  path:
+    description: 'Path where the binary has been installed'
+runs:
+  using: 'node20'
+  main: 'dist/main.js'
