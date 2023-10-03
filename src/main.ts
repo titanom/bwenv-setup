@@ -124,6 +124,8 @@ async function run() {
     );
 
     const toolDir = await tc.cacheFile(path.join(__dirname, 'bwenv'), 'bwenv', 'bwenv', version);
+    const binaryPath = path.join(toolDir, 'bwenv');
+    await fsp.chmod(binaryPath, '755');
 
     core.addPath(toolDir);
   } catch (error) {
