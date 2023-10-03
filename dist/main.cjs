@@ -5334,7 +5334,7 @@ function getBinaryType() {
       const libc = getLibcVersion();
       if (arch2 === "x64" && libc === "gnu") {
         return "bwenv-x86_64-unknown-linux-gnu.zip";
-      } else if (arch2 === "x64" && libc === "musl") {
+      } else if (arch2 === "x64") {
         return "bwenv-x86_64-unknown-linux-musl.zip";
       }
       break;
