@@ -1,0 +1,25 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: titanom/github-composite-actions/turbo/setup@v1.0.12
+        with:
+          pnpm-version: 8
+
+      - name: Build
+        run: pnpm build
+
+      - name: Commit and push if changes
+        run: |
+          git diff --exit-code || git add -A
+          git diff --cached --exit-code || git commit -m "build(dist): compile source"
+          git push
