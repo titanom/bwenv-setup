@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as tc from '@actions/tool-cache';
 import * as ht from '@actions/http-client';
+import * as github from '@actions/github';
 import * as fs from 'node:fs';
 import * as fsp from 'node:fs/promises';
 import * as path from 'node:path';
@@ -59,8 +60,34 @@ function getBinaryType(): string {
   return binary;
 }
 
-function getReleaseURL(version = 'latest', binaryType?: string) {
-  const _version = `v${version.replace('v', '')}`;
+async function getLatestVersion(): Promise<string> {
+  try {
+    // @ts-expect-error
+    const octokit = github.getOctokit(process.env.GITHUB_TOKEN!);
+
+    const { owner, repo } = github.context.repo;
+    const releases = await octokit.rest.repos.listReleases({
+      owner,
+      repo,
+      per_page: 1
+    });
+
+    const latestRelease = releases.data[0];
+
+    if (!latestRelease || !latestRelease.tag_name) {
+      throw new Error('Could not fetch the latest release.');
+    }
+
+    return latestRelease.tag_name;
+  } catch (error) {
+    // @ts-expect-error
+    core.error('Failed to fetch the latest release:', error);
+    throw error;
+  }
+}
+
+async function getReleaseURL(version = 'latest', binaryType?: string): Promise<string> {
+  const _version = version === 'latest' ? await getLatestVersion() : `v${version.replace('v', '')}`;
   return `https://github.com/titanom/bwenv/releases/download/${_version}/${
     binaryType ?? getBinaryType()
   }`;
@@ -113,7 +140,7 @@ async function run() {
 
     core.addPath(toolDir);
   } catch (error) {
-    // @ts-expect-error I don't care
+    // @ts-expect-error
     core.setFailed(error.message);
   }
 }
