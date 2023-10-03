@@ -102,6 +102,7 @@ async function run() {
 
     core.addPath(toolDir);
   } catch (error) {
+    // @ts-expect-error I don't care
     core.setFailed(error.message);
   }
 }

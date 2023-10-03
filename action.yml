@@ -1,12 +1,20 @@
-name: 'Install Binary from GitHub Release'
-description: 'Download and install a binary from a GitHub release'
+name: 'bwenv Setup'
+description: 'Sets up bwenv binary in the GitHub Actions runner'
+author: 'titanom'
+branding:
+  icon: 'box'
+  color: 'gray-dark'
+
 inputs:
   version:
-    description: 'Version of bwenv'
-    default: latest
+    description: 'Version of bwenv to set up. Default is latest.'
+    required: false
+    default: 'latest'
+
 outputs:
   path:
-    description: 'Path where the binary has been installed'
+    description: 'The path to the downloaded bwenv binary'
+
 runs:
   using: 'node20'
   main: 'dist/main.js'
