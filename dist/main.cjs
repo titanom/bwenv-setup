@@ -5395,6 +5395,8 @@ async function run() {
       (archive) => unzipArchive(archive, __dirname, true)
     );
     const toolDir = await tc.cacheFile(path.join(__dirname, "bwenv"), "bwenv", "bwenv", version2);
+    const binaryPath = path.join(toolDir, "bwenv");
+    await fsp.chmod(binaryPath, "755");
     core.addPath(toolDir);
   } catch (error) {
     core.setFailed(error.message);
