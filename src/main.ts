@@ -25,27 +25,38 @@ function getBinaryType(): string {
   const platform = os.platform();
   const arch = os.arch();
 
+  core.info(`Platform: ${platform}`);
+  core.info(`Arch: ${arch}`);
+
+  let binary = "";
+
   switch (platform) {
     case 'darwin': {
       if (arch === 'x64') {
-        return 'bwenv-x86_64-apple-darwin.zip';
+        binary = 'bwenv-x86_64-apple-darwin.zip';
       } else if (arch === 'arm64') {
-        return 'bwenv-aarch64-apple-darwin.zip';
+        binary = 'bwenv-aarch64-apple-darwin.zip';
       }
       break;
     }
     case 'linux': {
       const libc = getLibcVersion();
       if (arch === 'x64' && libc === 'gnu') {
-        return 'bwenv-x86_64-unknown-linux-gnu.zip';
+        binary = 'bwenv-x86_64-unknown-linux-gnu.zip';
       } else if (arch === 'x64') {
-        return 'bwenv-x86_64-unknown-linux-musl.zip';
+        binary = 'bwenv-x86_64-unknown-linux-musl.zip';
       }
       break;
     }
   }
 
-  throw new Error(`Unsupported platform/architecture: ${platform}/${arch}`);
+  if (!binary) {
+    throw new Error(`Unsupported platform/architecture: ${platform}/${arch}`);
+  }
+
+  core.info(`Binary: ${binary}`);
+
+  return binary;
 }
 
 function getReleaseURL(version = 'latest', binaryType?: string) {
