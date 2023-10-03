@@ -25,4 +25,3 @@ jobs:
           git add -f dist/
           git commit -m "build(dist): compile action" || echo "No changes to commit"
           git push
-

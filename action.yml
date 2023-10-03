@@ -17,4 +17,4 @@ outputs:
 
 runs:
   using: 'node20'
-  main: 'dist/main.js'
+  main: 'dist/main.cjs'
