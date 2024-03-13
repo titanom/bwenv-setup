@@ -28,8 +28,15 @@ async function getVersionFromConfigFile() {
   for (const file of files) {
     const currentPath = path.join(process.env['GITHUB_WORKSPACE'] ?? process.cwd(), file);
     const files = await fsp.readdir(process.env['GITHUB_WORKSPACE'] ?? process.cwd());
+    core.info('GITHUB_WORKSPACE: ' + process.env['GITHUB_WORKSPACE']!);
     core.info(JSON.stringify(files));
     core.info(`Path: ${currentPath}`);
+    try {
+      const files = await fsp.readdir(process.env['GITHUB_WORKSPACE'] ?? process.cwd());
+      core.info('Files: ' + files);
+    } catch (error) {
+      core.error('Error reading directory: ' + error);
+    }
     try {
       const stat = await fsp.stat(currentPath);
       if (stat.isFile()) {
