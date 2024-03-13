@@ -22274,6 +22274,8 @@ async function getVersionFromConfigFile() {
   let filepath = void 0;
   for (const file of files) {
     const currentPath = path.join(process.env["GITHUB_WORKSPACE"] ?? process.cwd(), file);
+    const files2 = await fsp.readdir(process.env["GITHUB_WORKSPACE"] ?? process.cwd());
+    core.info(JSON.stringify(files2));
     core.info(`Path: ${currentPath}`);
     try {
       const stat2 = await fsp.stat(currentPath);
