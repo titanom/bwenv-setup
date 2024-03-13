@@ -183,14 +183,15 @@ async function unzipArchive(
 
 async function run() {
   try {
-    const inputVersion = core.getInput('version', { required: false });
-
-    const configVersion = await getVersionFromConfigFile();
-    const availableVersions = await getAvailableVersions();
-    const matchingVersion = findLatestMatchingVersion(availableVersions, configVersion);
-
-    const version = inputVersion || matchingVersion || 'latest';
-
+    const version =
+      core.getInput('version', { required: false }) ||
+      (await (async () => {
+        const configVersion = await getVersionFromConfigFile();
+        const availableVersions = await getAvailableVersions();
+        const matchingVersion = findLatestMatchingVersion(availableVersions, configVersion);
+        if (!matchingVersion) throw new Error(`No version matching ${configVersion} found.`);
+        return matchingVersion;
+      })());
     core.info(`Using Version: ${version}`);
 
     const releaseURL = await getReleaseURL(version);

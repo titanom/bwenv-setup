@@ -9,7 +9,6 @@ inputs:
   version:
     description: 'Version of bwenv to set up. Default is latest.'
     required: false
-    default: 'latest'
 
 outputs:
   path:
