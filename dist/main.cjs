@@ -22273,7 +22273,8 @@ async function getVersionFromConfigFile() {
   const files = ["bwenv.yaml", "bwenv.yml", "bwenv.toml"];
   let filepath = void 0;
   for (const file of files) {
-    const currentPath = path.join(process.env.GITHUB_WORKSPACE ?? process.cwd(), file);
+    const currentPath = path.join(process.env["GITHUB_WORKSPACE"] ?? process.cwd(), file);
+    core.info(`Path: ${currentPath}`);
     try {
       const stat2 = await fsp.stat(currentPath);
       if (stat2.isFile()) {
