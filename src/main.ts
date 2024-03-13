@@ -183,6 +183,8 @@ async function run() {
       })()) ??
         'latest');
 
+    core.info(`Using Version: ${version}`);
+
     const releaseURL = await getReleaseURL(version);
 
     await downloadFile(releaseURL, path.join(__dirname, 'bwenv.zip')).then((archive) =>

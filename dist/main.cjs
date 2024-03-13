@@ -22397,6 +22397,7 @@ async function run() {
       const matchingVersion = findLatestMatchingVersion(availableVersions, configVersion);
       return matchingVersion;
     })() ?? "latest");
+    core.info(`Using Version: ${version2}`);
     const releaseURL = await getReleaseURL(version2);
     await downloadFile(releaseURL, path.join(__dirname2, "bwenv.zip")).then(
       (archive) => unzipArchive(archive, __dirname2, true)
