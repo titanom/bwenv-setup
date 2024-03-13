@@ -6,6 +6,74 @@ import * as fsp from 'node:fs/promises';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import * as child_process from 'node:child_process';
+import { parse as parseYaml } from 'yaml';
+import { parse as parseToml } from 'toml';
+import * as z from 'zod';
+import * as semver from 'semver';
+
+// @ts-expect-error __dirname does not exist in ESM
+if (typeof __dirname === 'undefined') {
+  var __dirname = path.resolve();
+}
+
+const configFileSchema = z.object({
+  version: z.coerce.string(),
+});
+
+async function getVersionFromConfigFile() {
+  const files = ['bwenv.yaml', 'bwenv.yml', 'bwenv.toml'];
+
+  let filepath: string | undefined = undefined;
+
+  for (const file of files) {
+    const currentPath = path.join(process.env['GITHUB_WORKSPACE'] ?? process.cwd(), file);
+    const files = await fsp.readdir(process.env['GITHUB_WORKSPACE'] ?? process.cwd());
+    core.info('GITHUB_WORKSPACE: ' + process.env['GITHUB_WORKSPACE']!);
+    core.info(JSON.stringify(files));
+    core.info(`Path: ${currentPath}`);
+    try {
+      const files = await fsp.readdir(process.env['GITHUB_WORKSPACE'] ?? process.cwd());
+      core.info('Files: ' + files);
+    } catch (error) {
+      core.error('Error reading directory: ' + error);
+    }
+    try {
+      const stat = await fsp.stat(currentPath);
+      if (stat.isFile()) {
+        filepath = currentPath;
+        break;
+      }
+    } catch {}
+  }
+
+  if (!filepath) throw new Error('Could not find configuration file in root directory.');
+  const raw = await fsp.readFile(filepath, 'utf8');
+
+  const parse = filepath.endsWith('toml') ? parseToml : parseYaml;
+  const parsed = parse(raw);
+  const config = configFileSchema.parse(parsed);
+  return config.version;
+}
+
+function findLatestMatchingVersion(versions: string[], targetVersion: string): string | undefined {
+  const matchingVersions = versions.filter((version) => semver.satisfies(version, targetVersion));
+  matchingVersions.sort((a, b) => semver.rcompare(a, b));
+  return matchingVersions[0];
+}
+
+async function getAvailableVersions() {
+  const releaseURL = `https://api.github.com/repos/titanom/bwenv/releases`;
+
+  const http = new ht.HttpClient('titanom/bwenv-setup');
+  const response = await http.getJson<{ tag_name: string }[]>(releaseURL);
+
+  if (response.result) {
+    const versions = response.result.map((result) => result.tag_name);
+    return versions;
+  } else {
+    throw new Error(`Failed to get release information for titanom/bwenv`);
+  }
+}
 
 function getLibcVersion(): string {
   try {
@@ -115,7 +183,16 @@ async function unzipArchive(
 
 async function run() {
   try {
-    const version = core.getInput('version', { required: false });
+    const version =
+      core.getInput('version', { required: false }) ||
+      (await (async () => {
+        const configVersion = await getVersionFromConfigFile();
+        const availableVersions = await getAvailableVersions();
+        const matchingVersion = findLatestMatchingVersion(availableVersions, configVersion);
+        if (!matchingVersion) throw new Error(`No version matching ${configVersion} found.`);
+        return matchingVersion;
+      })());
+    core.info(`Using Version: ${version}`);
 
     const releaseURL = await getReleaseURL(version);
 
