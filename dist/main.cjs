@@ -22392,12 +22392,11 @@ async function unzipArchive(archive, destination = __dirname2, deleteAfter = fal
 }
 async function run() {
   try {
-    const version2 = core.getInput("version", { required: false }) || (await (async () => {
-      const configVersion = await getVersionFromConfigFile();
-      const availableVersions = await getAvailableVersions();
-      const matchingVersion = findLatestMatchingVersion(availableVersions, configVersion);
-      return matchingVersion;
-    })() ?? "latest");
+    const inputVersion = core.getInput("version", { required: false });
+    const configVersion = await getVersionFromConfigFile();
+    const availableVersions = await getAvailableVersions();
+    const matchingVersion = findLatestMatchingVersion(availableVersions, configVersion);
+    const version2 = inputVersion || matchingVersion || "latest";
     core.info(`Using Version: ${version2}`);
     const releaseURL = await getReleaseURL(version2);
     await downloadFile(releaseURL, path.join(__dirname2, "bwenv.zip")).then(

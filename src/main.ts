@@ -174,15 +174,13 @@ async function unzipArchive(
 
 async function run() {
   try {
-    const version =
-      core.getInput('version', { required: false }) ||
-      ((await (async () => {
-        const configVersion = await getVersionFromConfigFile();
-        const availableVersions = await getAvailableVersions();
-        const matchingVersion = findLatestMatchingVersion(availableVersions, configVersion);
-        return matchingVersion;
-      })()) ??
-        'latest');
+    const inputVersion = core.getInput('version', { required: false });
+
+    const configVersion = await getVersionFromConfigFile();
+    const availableVersions = await getAvailableVersions();
+    const matchingVersion = findLatestMatchingVersion(availableVersions, configVersion);
+
+    const version = inputVersion || matchingVersion || 'latest';
 
     core.info(`Using Version: ${version}`);
 
@@ -198,6 +196,7 @@ async function run() {
 
     core.addPath(toolDir);
   } catch (error) {
+    // @ts-expect-error
     core.setFailed(error.message);
   }
 }
